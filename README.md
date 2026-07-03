@@ -21,6 +21,10 @@ log(level, "result = {}", LAZY(expensive_compute()));  // expensive_compute() ru
 `make_lazy_eval(fn)` / `lazy_eval<L>` give a reusable deferred value with an
 `operator()`, an `operator T`, an `ostream <<`, and a `std::formatter`. Header-only.
 
+## Dependencies
+
+**None** — header-only, standard library only.
+
 ## Build / test
 ```sh
 cmake -B build && cmake --build build && ctest --test-dir build
