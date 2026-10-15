@@ -1,5 +1,7 @@
 # lazy
 
+[![CI](https://github.com/Kronuz/lazy/actions/workflows/ci.yml/badge.svg)](https://github.com/Kronuz/lazy/actions/workflows/ci.yml)
+
 Deferred (lazy) evaluation helpers extracted from
 [Xapiand](https://github.com/Kronuz/Xapiand). The point is to build a value that is
 only computed **if and when** it is actually used -- e.g. an expensive log-message
