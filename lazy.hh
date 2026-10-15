@@ -41,18 +41,18 @@ auto eval(Val&& val) {
 }
 
 
+// Holds its invocable by value: a reference to the temporary make_lazy_eval receives
+// would dangle once a lazy_eval outlives the full expression that made it.
 template <typename L>
 class lazy_eval {
-	const L& lambda;
+	L lambda;
 
 public:
-	using type = decltype(std::declval<L>()());
+	using type = decltype(std::declval<L&>()());
 
-	lazy_eval(const L& lambda) : lambda(lambda) {}
-	lazy_eval(lazy_eval&& other) : lambda(std::move(other.lambda)) { }
-	lazy_eval& operator=(lazy_eval&& other) {
-		lambda = std::move(other.lambda);
-	}
+	explicit lazy_eval(L lambda) : lambda(std::move(lambda)) {}
+	lazy_eval(lazy_eval&&) = default;
+	lazy_eval& operator=(lazy_eval&&) = default;
 
 	lazy_eval(const lazy_eval&) = delete;
 	lazy_eval& operator=(const lazy_eval&) = delete;
@@ -78,7 +78,7 @@ struct std::formatter<lazy_eval<L>> : std::formatter<typename lazy_eval<L>::type
 template <typename L>
 auto
 make_lazy_eval(L&& lambda) {
-	return lazy_eval<L>{std::forward<L>(lambda)};
+	return lazy_eval<std::decay_t<L>>{std::forward<L>(lambda)};
 }
 
 
