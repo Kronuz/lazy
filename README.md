@@ -1,40 +1,81 @@
 # lazy
 
 [![CI](https://github.com/Kronuz/lazy/actions/workflows/ci.yml/badge.svg)](https://github.com/Kronuz/lazy/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
+![Header-only](https://img.shields.io/badge/header--only-yes-green.svg)
 
-Deferred (lazy) evaluation helpers extracted from
-[Xapiand](https://github.com/Kronuz/Xapiand). The point is to build a value that is
-only computed **if and when** it is actually used -- e.g. an expensive log-message
-argument that should cost nothing when the log level is disabled.
+Deferred evaluation for C++20: `LAZY(expensive())` makes a value that is computed
+only if and when it is used, and that formats through `std::format`. For log
+arguments that should cost nothing when the line is filtered out.
+
+## ✨ Highlights
+
+- **`LAZY(expr)`** wraps any expression without evaluating it.
+- **Formats like the value**: a `std::formatter`, `operator<<`, and a conversion
+  to the result type.
+- **`eval(x)`** passes a value through, or calls an invocable.
+- **One header, no dependencies.**
+
+## 📦 Installation
+
+Requires a C++20 compiler; CMake 3.14 or newer for the CMake route. CI builds it
+on Linux (x86_64, arm64), macOS (arm64, x86_64), and FreeBSD, plus ASan, UBSan,
+and TSan builds.
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(lazy
+  GIT_REPOSITORY https://github.com/Kronuz/lazy.git
+  GIT_TAG        main)
+FetchContent_MakeAvailable(lazy)
+
+target_link_libraries(my_app PRIVATE lazy::lazy)
+```
+
+## 🚀 Quick start
 
 ```cpp
 #include "lazy.hh"
 
-// eval() forwards a plain value, or invokes an invocable:
-eval(42);              // 42
-eval([]{ return 42; }); // 42
+#include <format>
+#include <string>
 
-// LAZY(expr) wraps an arbitrary expression; it runs only when queried, and
-// formats through the underlying type`s std::formatter:
-log(level, "result = {}", LAZY(expensive_compute()));  // expensive_compute() runs
-                                                        // only if this log emits
+std::string expensive() { return "computed"; }
+
+int main(int argc, char**) {
+	bool verbose = argc > 1;
+	auto value = LAZY(expensive());              // nothing runs yet
+	if (verbose) {
+		std::string line = std::format("result = {}", value);   // runs here
+	}
+}
 ```
 
-`make_lazy_eval(fn)` / `lazy_eval<L>` give a reusable deferred value with an
-`operator()`, an `operator T`, an `ostream <<`, and a `std::formatter`. Header-only.
+`LAZY` captures by reference, so use the value within the scope that made it.
 
-## Dependencies
+## 🎯 When to use it
 
-**None** — header-only, standard library only.
+- ✅ Arguments to log calls or debug output that may never be formatted.
+- ❌ Caching: a lazy value recomputes each time it is read.
 
-## Build / test
+## 📚 Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md): `eval`, `lazy_eval`, and the formatter.
+- [AGENTS.md](AGENTS.md): repository map and traps.
+
+## 🛠️ Building and testing
+
 ```sh
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
-## Use (FetchContent)
-```cmake
-FetchContent_Declare(lazy GIT_REPOSITORY https://github.com/Kronuz/lazy.git GIT_TAG main)
-FetchContent_MakeAvailable(lazy)
-target_link_libraries(your_app PRIVATE lazy::lazy)
-```
+## 🤝 Contributing
+
+Issues and pull requests are welcome. Read [AGENTS.md](AGENTS.md) first. CI must
+pass on every platform.
+
+## 📄 License
+
+MIT, Copyright (c) 2015-2019 Dubalu LLC. See [LICENSE](LICENSE). Extracted from
+[Xapiand](https://github.com/Kronuz/Xapiand), where the logger uses it.
