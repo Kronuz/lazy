@@ -7,33 +7,18 @@ Part of [Kronuz C++ Libraries](https://github.com/Kronuz/cpp-libraries), a colle
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
 ![Header-only](https://img.shields.io/badge/header--only-yes-green.svg)
 
-Deferred evaluation for C++20: `LAZY(expensive())` makes a value that is computed
-only if and when it is used, and that formats through `std::format`. For log
-arguments that should cost nothing when the line is filtered out.
+Header-only deferred evaluation for C++20: LAZY(expr) computes a value only when it is formatted or read.
+`LAZY` wraps the expression in a lambda inside a move-only `lazy_eval`, and `std::format`,
+`operator<<` or a call runs it. Reach for it for log arguments that should cost nothing when
+the line is filtered out.
 
 ## ✨ Highlights
 
-- **`LAZY(expr)`** wraps any expression without evaluating it.
-- **Formats like the value**: a `std::formatter`, `operator<<`, and a conversion
-  to the result type.
-- **`eval(x)`** passes a value through, or calls an invocable.
-- **One header, no dependencies.**
-
-## 📦 Installation
-
-Requires a C++20 compiler; CMake 3.14 or newer for the CMake route. CI builds it
-on Linux (x86_64, arm64), macOS (arm64, x86_64), and FreeBSD, plus ASan, UBSan,
-and TSan builds.
-
-```cmake
-include(FetchContent)
-FetchContent_Declare(lazy
-  GIT_REPOSITORY https://github.com/Kronuz/lazy.git
-  GIT_TAG        main)
-FetchContent_MakeAvailable(lazy)
-
-target_link_libraries(my_app PRIVATE lazy::lazy)
-```
+- **`LAZY(expr)`.** Wraps any expression without evaluating it.
+- **Formats like the value.** A `std::formatter` specialization formats the result with the
+  result type's own formatter; `operator<<` and an explicit conversion work too.
+- **`eval(x)`.** Passes a value through, or calls an invocable and returns its result.
+- **One header, no dependencies.** The standard library, including `<format>`.
 
 ## 🚀 Quick start
 
@@ -41,43 +26,76 @@ target_link_libraries(my_app PRIVATE lazy::lazy)
 #include "lazy.hh"
 
 #include <format>
+#include <iostream>
 #include <string>
 
-std::string expensive() { return "computed"; }
+int calls = 0;
+std::string expensive() { ++calls; return "computed"; }
 
 int main(int argc, char**) {
-	bool verbose = argc > 1;
-	auto value = LAZY(expensive());              // nothing runs yet
-	if (verbose) {
-		std::string line = std::format("result = {}", value);   // runs here
+	auto value = LAZY(expensive());                    // nothing runs yet
+	if (argc > 1) {                                    // a filtered-out log line
+		std::cout << std::format("result = {}\n", value);
 	}
+	std::cout << calls << '\n';                        // 0
+	std::cout << std::format("result = {}\n", value);  // result = computed
+	std::cout << calls << '\n';                        // 1
 }
 ```
 
-`LAZY` captures by reference, so use the value within the scope that made it.
+## 📦 Installation
+
+Requires a C++20 compiler; CMake 3.16 or newer for the CMake route. CI builds it on Linux
+(x86_64, arm64), macOS (arm64, x86_64), and FreeBSD, plus ASan, UBSan, and TSan builds.
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(lazy
+  GIT_REPOSITORY https://github.com/Kronuz/lazy.git
+  GIT_TAG        78a82815418c8f66f199a18e79f205c21725459e)  # or main, to track the tip
+FetchContent_MakeAvailable(lazy)
+
+target_link_libraries(my_app PRIVATE lazy::lazy)
+```
+
+```cpp
+#include "lazy.hh"
+```
 
 ## 🎯 When to use it
 
-- ✅ Arguments to log calls or debug output that may never be formatted.
-- ❌ Caching: a lazy value recomputes each time it is read.
+Use it for arguments to log calls or debug output that may never be formatted.
+
+Not for:
+
+- **Caching.** A lazy value recomputes each time it is read.
+- **Storing for later.** `LAZY` captures by reference, so use the value within the scope
+  that made it.
+- **Use as a plain value.** `lazy_eval` converts to its result type only explicitly; pass it
+  to `std::format`, `operator<<`, or call it.
 
 ## 📚 Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md): `eval`, `lazy_eval`, and the formatter.
+- [ARCHITECTURE.md](ARCHITECTURE.md): `eval`, `lazy_eval` and the formatter.
+- [CHANGELOG.md](CHANGELOG.md): dated changes.
 - [AGENTS.md](AGENTS.md): repository map and traps.
+- [Kronuz C++ Libraries](https://github.com/Kronuz/cpp-libraries): the catalog.
 
 ## 🛠️ Building and testing
 
 ```sh
-cmake -B build && cmake --build build && ctest --test-dir build
+cmake -B build
+cmake --build build
+ctest --test-dir build
 ```
 
 ## 🤝 Contributing
 
-Issues and pull requests are welcome. Read [AGENTS.md](AGENTS.md) first. CI must
-pass on every platform.
+Read [AGENTS.md](AGENTS.md) and the [catalog's rules](https://github.com/Kronuz/cpp-libraries/blob/main/AGENTS.md)
+first.
 
 ## 📄 License
 
-MIT, Copyright (c) 2015-2019 Dubalu LLC. See [LICENSE](LICENSE). Extracted from
-[Xapiand](https://github.com/Kronuz/Xapiand), where the logger uses it.
+MIT, Copyright (c) 2026 Germán Méndez Bravo and (c) 2015-2020 Dubalu LLC. See
+[LICENSE](LICENSE). Extracted from [Xapiand](https://github.com/Kronuz/Xapiand), where the
+logger uses it.
