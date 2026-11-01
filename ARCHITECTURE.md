@@ -9,7 +9,8 @@ cost nothing when the log level is off.
 - **`eval(x)`** — two overloads selected by `std::is_invocable`: an invocable is called,
   anything else is forwarded. This is the primitive the rest build on.
 - **`lazy_eval<L>` / `make_lazy_eval(fn)`** — a move-only wrapper around a callable that
-  runs it on demand, with `operator()`, an `operator T` (implicit evaluation), an
+  runs it on demand, with `operator()`, an `explicit operator T` (evaluation by
+  `static_cast<T>(lz)`; there is no implicit conversion), an
   `ostream <<`, and a `std::formatter` specialization that formats the *evaluated* value
   through the underlying type's formatter.
 - **`LAZY(expr)`** — a macro that wraps an arbitrary expression as

@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <format>
 #include <string>
+#include <type_traits>
 
 int main() {
 	int failures = 0;
@@ -23,6 +24,14 @@ int main() {
 	check(calls == 0, "lazy_eval does not run eagerly");
 	check(lz() == 7, "lazy_eval() runs the lambda");
 	check(calls == 1, "lazy_eval ran exactly once when called");
+
+	// The conversion to the result type is explicit: it evaluates under static_cast and never implicitly.
+	static_assert(!std::is_convertible_v<decltype(lz), int>, "lazy_eval converts to its result type only explicitly");
+	static_assert(std::is_constructible_v<int, decltype(lz)>, "static_cast<result type>(lazy_eval) is available");
+	auto converted = make_lazy_eval([&] { ++calls; return 9; });
+	int before = calls;
+	check(static_cast<int>(converted) == 9, "static_cast<result type>(lazy_eval) evaluates");
+	check(calls == before + 1, "the explicit conversion ran the lambda once");
 
 	// std::format sees through lazy_eval to the underlying value's formatter.
 	auto s = std::format("{}", make_lazy_eval([] { return 123; }));

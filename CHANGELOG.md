@@ -6,6 +6,14 @@ entries are dated.
 
 ## 2026-11-01
 
+### Fixed
+
+- `ARCHITECTURE.md` described `operator T` as an implicit conversion. It is `explicit`
+  (`lazy.hh`), so a `lazy_eval` is read with `static_cast<T>(lz)`, `lz()`, `operator<<` or
+  `std::format`, and never converts by itself. The document now says so, and `test/test.cc`
+  asserts that `lazy_eval` is not implicitly convertible to its result type and that the
+  explicit conversion evaluates once.
+
 ### Changed
 
 - The README follows the family README standard: the description as its first sentence,
