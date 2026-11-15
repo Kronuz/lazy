@@ -76,6 +76,8 @@ Not for:
 
 ## 📚 Documentation
 
+- [The Bag of Holding](https://kronuz.github.io/blog/bag-of-holding/):
+  the Familiars post that covers `lazy` among the small helpers.
 - [ARCHITECTURE.md](ARCHITECTURE.md): `eval`, `lazy_eval` and the formatter.
 - [CHANGELOG.md](CHANGELOG.md): dated changes.
 - [AGENTS.md](AGENTS.md): repository map and traps.
